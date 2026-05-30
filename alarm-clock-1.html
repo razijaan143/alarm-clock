@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alarm Clock</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --green: #00ffc8;
+    --bg: #07070f;
+    --card: #0d0d1a;
+    --border: #1a1a2e;
+    --text: #e8fff9;
+    --muted: #3a3a5a;
+    --dim: #1a1a30;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 30px 16px 60px;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: .25em;
+    margin-bottom: 28px;
+    animation: fadeDown .6s ease;
+  }
+  .header-title { color: var(--green); font-size: 13px; font-weight: 700; }
+  .header-dot   { color: var(--green); font-size: 6px; }
+  .header-sub   { color: var(--muted); font-size: 13px; font-weight: 700; }
+
+  /* ── CLOCK FACE ── */
+  .clock-face {
+    position: relative;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 40px 32px 28px;
+    width: 100%;
+    max-width: 420px;
+    text-align: center;
+    overflow: hidden;
+    margin-bottom: 24px;
+    animation: fadeDown .6s ease .1s both;
+  }
+  .clock-glow {
+    position: absolute;
+    top: -70px; left: 50%;
+    transform: translateX(-50%);
+    width: 320px; height: 180px;
+    background: radial-gradient(ellipse, #00ffc818 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .clock-digits {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 2px;
+    position: relative;
+    z-index: 1;
+  }
+  .digit {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 80px;
+    color: var(--text);
+    letter-spacing: -3px;
+    line-height: 1;
+    text-shadow: 0 0 24px #00ffc830;
+  }
+  .digit-sec {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 46px;
+    color: #3a6a60;
+    letter-spacing: -2px;
+    line-height: 1;
+  }
+  .colon {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 64px;
+    color: var(--green);
+    line-height: 1;
+    margin-bottom: 6px;
+    text-shadow: 0 0 14px var(--green);
+    animation: blink 1s step-end infinite;
+  }
+  .ampm {
+    font-size: 17px;
+    color: var(--green);
+    font-weight: 700;
+    letter-spacing: .1em;
+    margin-left: 6px;
+    margin-bottom: 6px;
+  }
+  .clock-date {
+    margin-top: 14px;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── SECTION ── */
+  .section {
+    width: 100%;
+    max-width: 420px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    animation: fadeDown .6s ease .2s both;
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .section-title {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .25em;
+  }
+
+  /* ── ADD BUTTON ── */
+  .add-btn {
+    background: transparent;
+    border: 1px solid #00ffc840;
+    color: var(--green);
+    padding: 7px 16px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    letter-spacing: .05em;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .add-btn:hover { background: var(--green); color: #000; }
+
+  /* ── ADD FORM ── */
+  .add-form {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 22px;
+    display: none;
+    flex-direction: column;
+    gap: 14px;
+    animation: slideDown .25s ease;
+  }
+  .add-form.open { display: flex; }
+  .form-row { display: flex; align-items: center; gap: 10px; }
+  .time-input {
+    background: var(--bg);
+    border: 1px solid var(--dim);
+    border-radius: 10px;
+    color: var(--text);
+    font-size: 30px;
+    font-family: 'Share Tech Mono', monospace;
+    padding: 8px 12px;
+    width: 82px;
+    text-align: center;
+    transition: border-color .2s;
+  }
+  .time-input:focus { outline: none; border-color: var(--green); }
+  .form-colon {
+    color: var(--green);
+    font-size: 30px;
+    font-family: 'Share Tech Mono', monospace;
+  }
+  .label-input {
+    background: var(--bg);
+    border: 1px solid var(--dim);
+    border-radius: 10px;
+    color: var(--text);
+    font-size: 15px;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 600;
+    padding: 11px 14px;
+    width: 100%;
+    transition: border-color .2s;
+  }
+  .label-input:focus { outline: none; border-color: var(--green); }
+  .save-btn {
+    background: var(--green);
+    border: none;
+    border-radius: 12px;
+    color: #000;
+    font-size: 15px;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    letter-spacing: .1em;
+    padding: 13px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: opacity .2s;
+  }
+  .save-btn:hover { opacity: .85; }
+
+  /* ── ALARM LIST ── */
+  .alarm-list { display: flex; flex-direction: column; gap: 8px; }
+  .empty {
+    color: #252535;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+    padding: 28px 0;
+    letter-spacing: .06em;
+  }
+
+  /* ── ALARM CARD ── */
+  .alarm-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: background .2s, opacity .2s;
+  }
+  .alarm-card:hover { background: #111120; }
+  .alarm-card.off { opacity: .4; }
+  .alarm-left { display: flex; align-items: baseline; gap: 6px; }
+  .alarm-time {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 34px;
+    color: var(--text);
+    letter-spacing: -1px;
+  }
+  .alarm-ampm { color: var(--green); font-size: 13px; font-weight: 700; }
+  .alarm-label { color: var(--muted); font-size: 13px; font-weight: 600; margin-left: 4px; }
+  .alarm-right { display: flex; align-items: center; gap: 14px; }
+
+  /* toggle */
+  .toggle {
+    width: 46px; height: 26px;
+    border-radius: 13px;
+    background: var(--dim);
+    position: relative;
+    cursor: pointer;
+    transition: background .25s;
+    flex-shrink: 0;
+    border: none;
+  }
+  .toggle.on { background: var(--green); }
+  .toggle::after {
+    content: '';
+    position: absolute;
+    top: 3px; left: 3px;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 4px #0006;
+    transition: transform .25s;
+  }
+  .toggle.on::after { transform: translateX(20px); }
+
+  .del-btn {
+    background: none;
+    border: none;
+    color: var(--text);
+    font-size: 15px;
+    cursor: pointer;
+    opacity: .3;
+    transition: opacity .2s;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+  }
+  .del-btn:hover { opacity: 1; color: #ff4466; }
+
+  /* ── RING OVERLAY ── */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: #000000cc;
+    backdrop-filter: blur(6px);
+    z-index: 999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn .3s ease;
+  }
+  .overlay.show { display: flex; }
+  .ring-card {
+    background: var(--card);
+    border: 1px solid var(--green);
+    border-radius: 28px;
+    padding: 44px 56px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    animation: ringPulse 1s ease-in-out infinite;
+  }
+  .ring-icon { font-size: 52px; }
+  .ring-label { color: var(--green); font-size: 13px; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; }
+  .ring-time {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 52px;
+    color: var(--text);
+    letter-spacing: -2px;
+    text-shadow: 0 0 24px #00ffc840;
+  }
+  .dismiss-btn {
+    margin-top: 8px;
+    background: var(--green);
+    border: none;
+    border-radius: 14px;
+    color: #000;
+    font-size: 16px;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    letter-spacing: .12em;
+    padding: 15px 44px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: opacity .2s;
+  }
+  .dismiss-btn:hover { opacity: .85; }
+
+  /* ── ANIMATIONS ── */
+  @keyframes blink   { 50% { opacity: .15; } }
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes ringPulse {
+    0%,100% { box-shadow: 0 0 30px #00ffc8, 0 0 60px #00ffc840; transform: scale(1); }
+    50%     { box-shadow: 0 0 60px #00ffc8, 0 0 120px #00ffc880; transform: scale(1.025); }
+  }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: #2a6e5e; border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<!-- RING OVERLAY -->
+<div class="overlay" id="overlay">
+  <div class="ring-card">
+    <div class="ring-icon">⏰</div>
+    <div class="ring-label" id="ringLabel">Alarm</div>
+    <div class="ring-time" id="ringTime">--:--</div>
+    <button class="dismiss-btn" onclick="dismiss()">Dismiss</button>
+  </div>
+</div>
+
+<!-- HEADER -->
+<div class="header">
+  <span class="header-title">ALARM</span>
+  <span class="header-dot">●</span>
+  <span class="header-sub">CLOCK</span>
+</div>
+
+<!-- CLOCK FACE -->
+<div class="clock-face">
+  <div class="clock-glow"></div>
+  <div class="clock-digits">
+    <span class="digit" id="dispH">12</span>
+    <span class="colon">:</span>
+    <span class="digit" id="dispM">00</span>
+    <span class="colon">:</span>
+    <span class="digit-sec" id="dispS">00</span>
+    <span class="ampm" id="dispAMPM">AM</span>
+  </div>
+  <div class="clock-date" id="dispDate">Loading...</div>
+</div>
+
+<!-- ALARMS SECTION -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-title">ALARMS</span>
+    <button class="add-btn" id="toggleFormBtn" onclick="toggleForm()">+ Add Alarm</button>
+  </div>
+
+  <!-- ADD FORM -->
+  <div class="add-form" id="addForm">
+    <div class="form-row">
+      <input class="time-input" type="number" id="inpH" min="0" max="23" placeholder="HH" value="7">
+      <span class="form-colon">:</span>
+      <input class="time-input" type="number" id="inpM" min="0" max="59" placeholder="MM" value="00">
+    </div>
+    <input class="label-input" type="text" id="inpLabel" placeholder="Label — jaise: Fajar, School, Dawa" maxlength="30">
+    <button class="save-btn" onclick="addAlarm()">Set Alarm</button>
+  </div>
+
+  <!-- LIST -->
+  <div class="alarm-list" id="alarmList">
+    <div class="empty" id="emptyMsg">Koi alarm nahi. Upar se add karo ⬆</div>
+  </div>
+</div>
+
+<script>
+  // ── STATE ──
+  let alarms = JSON.parse(localStorage.getItem('alarms') || '[]');
+  let ringInterval = null;
+  let audioCtx = null;
+  let formOpen = false;
+
+  // ── CLOCK ──
+  function tick() {
+    const now = new Date();
+    let h = now.getHours();
+    const m = now.getMinutes();
+    const s = now.getSeconds();
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const h12 = h % 12 || 12;
+
+    document.getElementById('dispH').textContent    = pad(h12);
+    document.getElementById('dispM').textContent    = pad(m);
+    document.getElementById('dispS').textContent    = pad(s);
+    document.getElementById('dispAMPM').textContent = ampm;
+    document.getElementById('dispDate').textContent = now.toLocaleDateString('en-US', {
+      weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
+    });
+
+    // Check alarms
+    if (s === 0) {
+      alarms.forEach(a => {
+        if (a.active && a.h === h && a.m === m) triggerAlarm(a);
+      });
+    }
+  }
+  setInterval(tick, 1000);
+  tick();
+
+  // ── ALARM TRIGGER ──
+  function triggerAlarm(alarm) {
+    const h12 = alarm.h % 12 || 12;
+    const ampm = alarm.h >= 12 ? 'PM' : 'AM';
+    document.getElementById('ringLabel').textContent = alarm.label || 'Alarm';
+    document.getElementById('ringTime').textContent  = pad(h12) + ':' + pad(alarm.m) + ' ' + ampm;
+    document.getElementById('overlay').classList.add('show');
+    beep();
+    ringInterval = setInterval(beep, 1300);
+  }
+
+  function dismiss() {
+    document.getElementById('overlay').classList.remove('show');
+    clearInterval(ringInterval);
+  }
+
+  // ── SOUND ──
+  function beep() {
+    try {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc  = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+      osc.frequency.setValueAtTime(660, audioCtx.currentTime + 0.18);
+      gain.gain.setValueAtTime(0.45, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.55);
+      osc.start(audioCtx.currentTime);
+      osc.stop(audioCtx.currentTime + 0.55);
+    } catch(e) {}
+  }
+
+  // ── FORM TOGGLE ──
+  function toggleForm() {
+    formOpen = !formOpen;
+    document.getElementById('addForm').classList.toggle('open', formOpen);
+    document.getElementById('toggleFormBtn').textContent = formOpen ? '✕ Cancel' : '+ Add Alarm';
+  }
+
+  // ── ADD ALARM ──
+  function addAlarm() {
+    const h = parseInt(document.getElementById('inpH').value);
+    const m = parseInt(document.getElementById('inpM').value);
+    const label = document.getElementById('inpLabel').value.trim();
+
+    if (isNaN(h) || h < 0 || h > 23) return alert('Hours 0–23 ke darmiyan hone chahiye!');
+    if (isNaN(m) || m < 0 || m > 59) return alert('Minutes 0–59 ke darmiyan hone chahiye!');
+
+    const alarm = { id: Date.now(), h, m, label: label || 'Alarm', active: true };
+    alarms.push(alarm);
+    save();
+    renderList();
+    toggleForm();
+    document.getElementById('inpLabel').value = '';
+    document.getElementById('inpH').value = '7';
+    document.getElementById('inpM').value = '00';
+  }
+
+  // ── TOGGLE ON/OFF ──
+  function toggleAlarm(id) {
+    alarms = alarms.map(a => a.id === id ? { ...a, active: !a.active } : a);
+    save();
+    renderList();
+  }
+
+  // ── DELETE ──
+  function deleteAlarm(id) {
+    alarms = alarms.filter(a => a.id !== id);
+    save();
+    renderList();
+  }
+
+  // ── RENDER ──
+  function renderList() {
+    const list = document.getElementById('alarmList');
+    const empty = document.getElementById('emptyMsg');
+
+    // Remove old cards
+    list.querySelectorAll('.alarm-card').forEach(el => el.remove());
+
+    if (alarms.length === 0) {
+      empty.style.display = 'block';
+      return;
+    }
+    empty.style.display = 'none';
+
+    alarms.forEach(alarm => {
+      const h12 = alarm.h % 12 || 12;
+      const ampm = alarm.h >= 12 ? 'PM' : 'AM';
+
+      const card = document.createElement('div');
+      card.className = 'alarm-card' + (alarm.active ? '' : ' off');
+      card.innerHTML = `
+        <div class="alarm-left">
+          <span class="alarm-time">${pad(h12)}:${pad(alarm.m)}</span>
+          <span class="alarm-ampm">${ampm}</span>
+          <span class="alarm-label">${escHtml(alarm.label)}</span>
+        </div>
+        <div class="alarm-right">
+          <button class="toggle ${alarm.active ? 'on' : ''}" onclick="toggleAlarm(${alarm.id})" title="On/Off"></button>
+          <button class="del-btn" onclick="deleteAlarm(${alarm.id})" title="Delete">✕</button>
+        </div>
+      `;
+      list.appendChild(card);
+    });
+  }
+
+  // ── HELPERS ──
+  function pad(n)      { return String(n).padStart(2, '0'); }
+  function save()      { localStorage.setItem('alarms', JSON.stringify(alarms)); }
+  function escHtml(s)  { return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  // First render
+  renderList();
+</script>
+</body>
+</html>
