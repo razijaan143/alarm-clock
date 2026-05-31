@@ -1,0 +1,12 @@
+{
+  "background_color": "#ffffff",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "Alarm Clock",
+  "orientation": "any",
+  "scope": "/",
+  "short_name": "Alarm Clock",
+  "start_url": "/",
+  "theme_color": "#ffffff",
+  "description": "Best Alarm Clock App"
+}
