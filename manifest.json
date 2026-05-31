@@ -1,12 +1,24 @@
 {
-  "background_color": "#ffffff",
+  "background_color": "#07070f",
   "dir": "ltr",
   "display": "standalone",
   "name": "Alarm Clock",
   "orientation": "any",
   "scope": "/",
   "short_name": "Alarm Clock",
-  "start_url": "/",
-  "theme_color": "#ffffff",
-  "description": "Best Alarm Clock App"
+  "start_url": "/alarm-clock/",
+  "theme_color": "#00ffc8",
+  "description": "Best Alarm Clock App",
+  "icons": [
+    {
+      "src": "/alarm-clock/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/alarm-clock/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
 }
